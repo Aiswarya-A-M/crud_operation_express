@@ -70,9 +70,9 @@ function addDetails(userDetails) {
   fs.writeFileSync(storeDataPath, JSON.stringify(userDetails));
 }
 
-function getAge(dob) {
-  const dobArray = dob.split("/");
-  const birthDate = new Date(dobArray[2], dobArray[1] - 1, dobArray[0]);
+function getAge(DOB) {
+  const DOBArray = DOB.split("/");
+  const birthDate = new Date(DOBArray[2], DOBArray[1] - 1, DOBArray[0]);
   const currentDate = new Date();
   const age = currentDate.getFullYear() - birthDate.getFullYear();
   return age;
