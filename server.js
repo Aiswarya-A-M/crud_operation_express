@@ -5,100 +5,92 @@ const bodyParser = require("body-parser");
 const app = express();
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-const DBPath = "./DB.json";
+const storeDataPath = "./storeData.json";
 
-app.get("/", (req, res) => {
-  res.send("hi");
+app.get("/listUsers", (req, res) => {
+  const userDetails = takeUsersData();
+  res.send(userDetails);
 });
 
 app.post("/addUser", function (req, res) {
   try {
     const newUser = req.body;
-    const userDetails = taskView();
+    const userDetails = takeUsersData();
     const id = userDetails[userDetails.length - 1].userId + 1;
     newUser.userId = id;
     const age = findAge(newUser.userDOB);
     newUser.userAge = age;
     userDetails.push(newUser);
-    addToDB(userDetails);
-    console.log(req.body);
-    console.log("Data received successfully");
+    addData(userDetails);
     res.send("Data received successfully");
   } catch (error) {
     console.error("Error in handling POST request:", error.message);
   }
 });
 
-app.post("/viewUser", function (req, res) {
+app.get("/:id", function (req, res) {
   try {
-    let viewUserId = req.body;
-    const id = viewUserId.userId;
-    const userDetails = taskView();
+    const id = Number(req.params.id);
+    const userDetails = takeUsersData();
     const viewUser = userDetails.find((user) => user.userId === id);
 
     if (viewUser) {
       res.send(viewUser);
       console.log(viewUser);
-    } else {
-      res.send("no data");
     }
-
+    res.send("user doesn't exist");
   } catch (error) {
     console.error("Error in handling POST request:", error.message);
   }
 });
 
-app.post("/updateUser", function (req, res) {
+app.put("/updateUser/:id", function (req, res) {
   try {
-    let updateUser = req.body; 
-    const id = updateUser.userId;
-    const userDetails = taskView();
+    const updatedUser = req.body;
+    const userDetails = takeUsersData();
+    const id = Number(req.params.id);
     const user = userDetails.find((user) => user.userId === id);
-    const age=findAge(updateUser.userDOB)
+    const age = findAge(updatedUser.userDOB);
+
     if (user) {
-      user.userId=updateUser.userId;
-      user.userName=updateUser.userName;
-      user.userDOB=updateUser.userDOB;
-      user.userDepartment=updateUser.userDepartment;
-      user.userAge=age
-      addToDB(userDetails);
-      res.send("updated successfully")
-    } else {
-      res.send("no user");
+      user.userId = id;
+      user.userName = updatedUser.userName;
+      user.userDOB = updatedUser.userDOB;
+      user.userDepartment = updatedUser.userDepartment;
+      user.userAge = age;
+      addData(userDetails);
+      res.send("user updated successfully");
     }
-
+    res.send("user doesn't exist");
   } catch (error) {
-    console.error("Error in handling POST request:", error.message);
+    console.error("Error in handling PUT request:", error.message);
   }
 });
 
-app.post("/deleteUser", function (req, res) {
+app.delete("/deleteUser/:id", function (req, res) {
   try {
-    let deleteUserId = req.body;
-    const id = deleteUserId.userId;
-    const userDetails = taskView();
-    const remainingUser = userDetails.filter((user) => user.userId !== id);
-    addToDB(remainingUser);
+    const id = Number(req.params.id);
+    const userDetails = takeUsersData();
+    const userIndex = userDetails.findIndex((user) => user.userId === id);
 
-    if (remainingUser) {
-      res.send("user data deleted successfully");
-    } else {
-      res.send("no user");
+    if (userIndex !== -1) {
+      userDetails.splice(userIndex, 1);
+      addData(userDetails);
+      res.send("user deleted successfully");
     }
-
+    res.send("user doesn't exist");
   } catch (error) {
-    console.error("Error in handling POST request:", error.message);
+    console.error("Error in handling DELETE request:", error.message);
   }
 });
 
-function taskView() {
-  const data = fs.readFileSync(DBPath, "utf8");
+function takeUsersData() {
+  const data = fs.readFileSync(storeDataPath, "utf8");
   return JSON.parse(data);
 }
 
-function addToDB(userInfo) {
-  fs.writeFileSync(DBPath, JSON.stringify(userInfo));
+function addData(userDetails) {
+  fs.writeFileSync(storeDataPath, JSON.stringify(userDetails));
 }
 
 function findAge(dob) {
