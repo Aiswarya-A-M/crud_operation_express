@@ -3,10 +3,10 @@ const fs = require("fs");
 const uuid = require("uuid");
 const bodyParser = require("body-parser");
 const app = express();
-
-app.use(bodyParser.json());
 const storeDataPath = "./storeData.json";
 const userDetails = takeUsersData();
+
+app.use(bodyParser.json());
 
 app.get("/listUsers", (req, res) => {
   res.send(userDetails);
@@ -24,7 +24,6 @@ app.post("/addUser", function (req, res) {
 app.get("/:id", function (req, res) {
   const id = req.params.id;
   const viewUser = userDetails.find((user) => user.userId === id);
-
   if (viewUser) {
     res.send(viewUser);
     return;
@@ -37,7 +36,6 @@ app.put("/updateUser/:id", function (req, res) {
   const id = req.params.id;
   const user = userDetails.find((user) => user.userId === id);
   const age = getAge(updatedUser.userDOB);
-
   if (user) {
     user.userId = id;
     user.userName = updatedUser.userName;
@@ -54,7 +52,6 @@ app.put("/updateUser/:id", function (req, res) {
 app.delete("/deleteUser/:id", function (req, res) {
   const id = req.params.id;
   const userIndex = userDetails.findIndex((user) => user.userId === id);
-
   if (userIndex !== -1) {
     userDetails.splice(userIndex, 1);
     addDetails(userDetails);
