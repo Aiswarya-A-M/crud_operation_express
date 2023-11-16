@@ -4,7 +4,7 @@ const uuid = require("uuid");
 const bodyParser = require("body-parser");
 const app = express();
 const storeDataPath = "./storeData.json";
-const userDetails = takeUsersData();
+const userDetails = getUserData();
 
 app.use(bodyParser.json());
 
@@ -61,7 +61,7 @@ app.delete("/user/:id", function (req, res) {
   res.send("user doesn't exist");
 });
 
-function takeUsersData() {
+function getUserData() {
   const data = fs.readFileSync(storeDataPath, "utf8");
   return JSON.parse(data);
 }
