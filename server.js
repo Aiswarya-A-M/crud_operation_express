@@ -1,87 +1,67 @@
-const exp = require("constants");
 const express = require("express");
 const fs = require("fs");
+const uuid = require("uuid");
 const bodyParser = require("body-parser");
 const app = express();
 
 app.use(bodyParser.json());
 const storeDataPath = "./storeData.json";
+const userDetails = takeUsersData();
 
 app.get("/listUsers", (req, res) => {
-  const userDetails = takeUsersData();
   res.send(userDetails);
 });
 
 app.post("/addUser", function (req, res) {
-  try {
-    const newUser = req.body;
-    const userDetails = takeUsersData();
-    const id = userDetails[userDetails.length - 1].userId + 1;
-    newUser.userId = id;
-    const age = findAge(newUser.userDOB);
-    newUser.userAge = age;
-    userDetails.push(newUser);
-    addData(userDetails);
-    res.send("Data received successfully");
-  } catch (error) {
-    console.error("Error in handling POST request:", error.message);
-  }
+  const newUser = req.body;
+  newUser.userId = uuid.v4();
+  newUser.userAge = getAge(newUser.userDOB);
+  userDetails.push(newUser);
+  addDetails(userDetails);
+  res.send("Data received successfully");
 });
 
 app.get("/:id", function (req, res) {
-  try {
-    const id = Number(req.params.id);
-    const userDetails = takeUsersData();
-    const viewUser = userDetails.find((user) => user.userId === id);
+  const id = req.params.id;
+  const viewUser = userDetails.find((user) => user.userId === id);
 
-    if (viewUser) {
-      res.send(viewUser);
-      console.log(viewUser);
-    }
-    res.send("user doesn't exist");
-  } catch (error) {
-    console.error("Error in handling POST request:", error.message);
+  if (viewUser) {
+    res.send(viewUser);
+    return;
   }
+  res.send("user doesn't exist");
 });
 
 app.put("/updateUser/:id", function (req, res) {
-  try {
-    const updatedUser = req.body;
-    const userDetails = takeUsersData();
-    const id = Number(req.params.id);
-    const user = userDetails.find((user) => user.userId === id);
-    const age = findAge(updatedUser.userDOB);
+  const updatedUser = req.body;
+  const id = req.params.id;
+  const user = userDetails.find((user) => user.userId === id);
+  const age = getAge(updatedUser.userDOB);
 
-    if (user) {
-      user.userId = id;
-      user.userName = updatedUser.userName;
-      user.userDOB = updatedUser.userDOB;
-      user.userDepartment = updatedUser.userDepartment;
-      user.userAge = age;
-      addData(userDetails);
-      res.send("user updated successfully");
-    }
-    res.send("user doesn't exist");
-  } catch (error) {
-    console.error("Error in handling PUT request:", error.message);
+  if (user) {
+    user.userId = id;
+    user.userName = updatedUser.userName;
+    user.userDOB = updatedUser.userDOB;
+    user.userDepartment = updatedUser.userDepartment;
+    user.userAge = age;
+    addDetails(userDetails);
+    res.send("user updated successfully");
+    return;
   }
+  res.send("user doesn't exist");
 });
 
 app.delete("/deleteUser/:id", function (req, res) {
-  try {
-    const id = Number(req.params.id);
-    const userDetails = takeUsersData();
-    const userIndex = userDetails.findIndex((user) => user.userId === id);
+  const id = req.params.id;
+  const userIndex = userDetails.findIndex((user) => user.userId === id);
 
-    if (userIndex !== -1) {
-      userDetails.splice(userIndex, 1);
-      addData(userDetails);
-      res.send("user deleted successfully");
-    }
-    res.send("user doesn't exist");
-  } catch (error) {
-    console.error("Error in handling DELETE request:", error.message);
+  if (userIndex !== -1) {
+    userDetails.splice(userIndex, 1);
+    addDetails(userDetails);
+    res.send("user deleted successfully");
+    return;
   }
+  res.send("user doesn't exist");
 });
 
 function takeUsersData() {
@@ -89,11 +69,11 @@ function takeUsersData() {
   return JSON.parse(data);
 }
 
-function addData(userDetails) {
+function addDetails(userDetails) {
   fs.writeFileSync(storeDataPath, JSON.stringify(userDetails));
 }
 
-function findAge(dob) {
+function getAge(dob) {
   const dobArray = dob.split("/");
   const birthDate = new Date(dobArray[2], dobArray[1] - 1, dobArray[0]);
   const currentDate = new Date();
