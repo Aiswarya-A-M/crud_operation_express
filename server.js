@@ -8,11 +8,11 @@ const userDetails = takeUsersData();
 
 app.use(bodyParser.json());
 
-app.get("/listUsers", (req, res) => {
+app.get("/", (req, res) => {
   res.send(userDetails);
 });
 
-app.post("/addUser", function (req, res) {
+app.post("/user", function (req, res) {
   const newUser = req.body;
   newUser.userId = uuid.v4();
   newUser.userAge = getAge(newUser.userDOB);
@@ -21,7 +21,7 @@ app.post("/addUser", function (req, res) {
   res.send("Data received successfully");
 });
 
-app.get("/:id", function (req, res) {
+app.get("users/:id", function (req, res) {
   const id = req.params.id;
   const viewUser = userDetails.find((user) => user.userId === id);
   if (viewUser) {
@@ -31,7 +31,7 @@ app.get("/:id", function (req, res) {
   res.send("user doesn't exist");
 });
 
-app.put("/updateUser/:id", function (req, res) {
+app.put("/user/:id", function (req, res) {
   const updatedUser = req.body;
   const id = req.params.id;
   const user = userDetails.find((user) => user.userId === id);
@@ -49,7 +49,7 @@ app.put("/updateUser/:id", function (req, res) {
   res.send("user doesn't exist");
 });
 
-app.delete("/deleteUser/:id", function (req, res) {
+app.delete("/user/:id", function (req, res) {
   const id = req.params.id;
   const userIndex = userDetails.findIndex((user) => user.userId === id);
   if (userIndex !== -1) {
