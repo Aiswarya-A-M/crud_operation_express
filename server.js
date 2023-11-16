@@ -2,8 +2,6 @@ const exp = require("constants");
 const express = require("express");
 const fs = require("fs");
 const bodyParser = require("body-parser");
-// const { userInfo } = require("os");
-
 const app = express();
 
 app.use(bodyParser.json());
@@ -11,21 +9,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const DBPath = "./DB.json";
 
 app.get("/", (req, res) => {
-  console.log("here");
   res.send("hi");
 });
 
-app.get("/listUsers", function (req, res) {
-  res.send(data);
-  res.end(data);
-});
-
-app.post("/addUsers", function (req, res) {
+app.post("/addUser", function (req, res) {
   try {
-    let newUser = req.body;
+    const newUser = req.body;
     const userDetails = taskView();
     const id = userDetails[userDetails.length - 1].userId + 1;
     newUser.userId = id;
+    const age = findAge(newUser.userDOB);
+    newUser.userAge = age;
     userDetails.push(newUser);
     addToDB(userDetails);
     console.log(req.body);
@@ -36,38 +30,44 @@ app.post("/addUsers", function (req, res) {
   }
 });
 
-app.post("/view", function (req, res) {
+app.post("/viewUser", function (req, res) {
   try {
     let viewUserId = req.body;
     const id = viewUserId.userId;
     const userDetails = taskView();
     const viewUser = userDetails.find((user) => user.userId === id);
+
     if (viewUser) {
-      res.send(JSON.stringify(viewUser));
-      console.log("my", JSON.stringify(viewUser));
+      res.send(viewUser);
+      console.log(viewUser);
     } else {
       res.send("no data");
     }
+
   } catch (error) {
     console.error("Error in handling POST request:", error.message);
   }
 });
 
-app.post("/update/:id", function (req, res) {
+app.post("/updateUser", function (req, res) {
   try {
-    let newUser = req.body; //{userId:1}
-    console.log(newUser);
-    const id = newUser.userId;
-    console.log(id);
+    let updateUser = req.body; 
+    const id = updateUser.userId;
     const userDetails = taskView();
-    console.log(userDetails);
-    const viewUser = userDetails.find((user) => user.userId === id);
-    if (viewUser) {
-      res.send(JSON.stringify(viewUser));
-      console.log("my", JSON.stringify(viewUser));
+    const user = userDetails.find((user) => user.userId === id);
+    const age=findAge(updateUser.userDOB)
+    if (user) {
+      user.userId=updateUser.userId;
+      user.userName=updateUser.userName;
+      user.userDOB=updateUser.userDOB;
+      user.userDepartment=updateUser.userDepartment;
+      user.userAge=age
+      addToDB(userDetails);
+      res.send("updated successfully")
     } else {
       res.send("no user");
     }
+
   } catch (error) {
     console.error("Error in handling POST request:", error.message);
   }
@@ -80,11 +80,13 @@ app.post("/deleteUser", function (req, res) {
     const userDetails = taskView();
     const remainingUser = userDetails.filter((user) => user.userId !== id);
     addToDB(remainingUser);
+
     if (remainingUser) {
       res.send("user data deleted successfully");
     } else {
       res.send("no user");
     }
+
   } catch (error) {
     console.error("Error in handling POST request:", error.message);
   }
@@ -97,6 +99,14 @@ function taskView() {
 
 function addToDB(userInfo) {
   fs.writeFileSync(DBPath, JSON.stringify(userInfo));
+}
+
+function findAge(dob) {
+  const dobArray = dob.split("/");
+  const birthDate = new Date(dobArray[2], dobArray[1] - 1, dobArray[0]);
+  const currentDate = new Date();
+  const age = currentDate.getFullYear() - birthDate.getFullYear();
+  return age;
 }
 
 app.listen(3000);
