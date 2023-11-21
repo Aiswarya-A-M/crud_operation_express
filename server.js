@@ -11,7 +11,7 @@ app.get("/", (req, res) => {
   res.send(userDetails);
 });
 
-app.post("/user", (req, res)=> {
+app.post("/user", (req, res) => {
   const newUser = req.body;
   newUser.userId = uuid.v4();
   newUser.userAge = getAge(newUser.userDOB);
@@ -20,7 +20,7 @@ app.post("/user", (req, res)=> {
   res.send("Data received successfully");
 });
 
-app.get("/user/:id", (req, res)=> {
+app.get("/user/:id", (req, res) => {
   const id = req.params.id;
   const viewUser = userDetails.find((user) => user.userId === id);
   if (viewUser) {
@@ -29,7 +29,7 @@ app.get("/user/:id", (req, res)=> {
   res.send("user doesn't exist");
 });
 
-app.put("/user/:id", (req, res)=> {
+app.put("/user/:id", (req, res) => {
   const updatedUser = req.body;
   const id = req.params.id;
   const user = userDetails.find((user) => user.userId === id);
@@ -46,7 +46,7 @@ app.put("/user/:id", (req, res)=> {
   res.send("user doesn't exist");
 });
 
-app.delete("/user/:id", (req, res)=> {
+app.delete("/user/:id", (req, res) => {
   const id = req.params.id;
   const userIndex = userDetails.findIndex((user) => user.userId === id);
   console.log(userIndex);
